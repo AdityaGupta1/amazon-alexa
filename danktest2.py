@@ -37,9 +37,12 @@ def build_response(session_attributes, speechlet_response):
 def get_welcome_response():
     session_attributes = {}
     card_title = "Welcome"
-    speech_output = "Welcome to Dank Test. "
-    reprompt_text = "Welcome to Dank Test. "
-    
+    speech_output = "Welcome to Dank Test Two. " \
+                    "Please tell which food is tasty by saying, " \
+                    "chow mein is tasty."
+    reprompt_text = "Please tell which food is tasty by saying, " \
+                    "chow mein is tasty."
+
     should_end_session = False
     return build_response(session_attributes, build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
@@ -47,27 +50,40 @@ def get_welcome_response():
 
 def handle_session_end_request():
     card_title = "Session Ended"
-    speech_output = "Thank you for trying Dank Test. " \
-                    "Have a dank day! "
+    speech_output = "Thank you for trying Dank Test 2. " \
+                    "Have a nice day! "
 
     should_end_session = True
     return build_response({}, build_speechlet_response(
         card_title, speech_output, None, should_end_session))
 
-def dank_test(intent, session):
-    session_attributes = {}
-    reprompt_text = None
 
-    speech_output = "Dank test completed."
+def dank_test_two(intent, session):
+
+    card_title = intent['name']
+    session_attributes = {}
+
+    if 'Food' in intent['slots']:
+        food = intent['slots']['Food']['value']
+        session_attributes = {};
+        speech_output = "I agree, " + \
+                        food + \
+                        " is tasty."
+        reprompt_text = ""
+    else:
+        speech_output = "I'm not sure which food you specified. " \
+                        "Please try again."
+        reprompt_text = ""
 
     should_end_session = True
     return build_response(session_attributes, build_speechlet_response(
-        intent['name'], speech_output, reprompt_text, should_end_session))
+        card_title, speech_output, reprompt_text, should_end_session))
 
 
 # --------------- Events ------------------
 
 def on_session_started(session_started_request, session):
+
     print("on_session_started requestId=" + session_started_request['requestId']
           + ", sessionId=" + session['sessionId'])
 
@@ -87,8 +103,9 @@ def on_intent(intent_request, session):
     intent = intent_request['intent']
     intent_name = intent_request['intent']['name']
 
-    if intent_name == "DankTest":
-        return dank_test(intent, session)
+    # Dispatch to your skill's intent handlers
+    if intent_name == "DankTestTwo":
+        return dank_test_two(intent, session)
     else:
         raise ValueError("Invalid intent")
 
@@ -100,7 +117,7 @@ def on_session_ended(session_ended_request, session):
 
 # --------------- Main handler ------------------
 
-def lambda_handler(event,  n):
+def lambda_handler(event, context):
     print("event.session.application.applicationId=" +
           event['session']['application']['applicationId'])
 
