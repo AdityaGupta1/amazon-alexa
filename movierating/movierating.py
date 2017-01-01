@@ -39,12 +39,8 @@ def build_response(session_attributes, speechlet_response):
 def get_welcome_response():
     session_attributes = {}
     card_title = "Welcome"
-    speech_output = "Welcome to Movie Ratings. " \
-                    "Please give me a movie by saying, " \
-                    "get the rating for Ghostbusters."
-    reprompt_text = "Welcome to Movie Ratings. " \
-                    "Please give me a movie by saying, " \
-                    "get the rating for Ghostbusters."
+    speech_output = "Welcome to Movie Ratings. Please give me a movie by saying, get the rating for Ghostbusters."
+    reprompt_text = "Please give me a movie by saying, get the rating for Ghostbusters."
 
     should_end_session = False
     return build_response(session_attributes, build_speechlet_response(
@@ -53,16 +49,14 @@ def get_welcome_response():
 
 def handle_session_end_request():
     card_title = "Session Ended"
-    speech_output = "Thank you for trying Movie Ratings. " \
-                    "Have a nice day! "
+    speech_output = "Thank you for trying Movie Ratings. Have a nice day! "
 
     should_end_session = True
     return build_response({}, build_speechlet_response(
         card_title, speech_output, None, should_end_session))
 
 
-def dank_test_two(intent, session):
-
+def movie_ratings(intent, session):
     card_title = intent['name']
     session_attributes = {}
 
@@ -74,18 +68,22 @@ def dank_test_two(intent, session):
         url = "http://www.omdbapi.com/?t=" + movie_with_spaces
         response = urllib.urlopen(url)
         data = json.loads(response.read())
-        imdb_rating = data["imdbRating"]
-        title = data["Title"]
+        response = data["Response"]
 
-        speech_output = "The IMDb rating for " + \
-                        title + \
-                        ", is " + \
-                        imdb_rating + \
-                        " out of 10."
+        if response == "False":
+            speech_output = "I can't find the movie, " + movie + ". Please try again or try a different movie."
+        else:
+            imdb_rating = data["imdbRating"]
+            title = data["Title"]
+
+            if imdb_rating == "N/A":
+                speech_output = "The IMDb rating for " + title + ", is unavailable. Please try a different movie."
+            else:
+                speech_output = "The IMDb rating for " + title + ", is " + imdb_rating + " out of 10."
+
         reprompt_text = ""
     else:
-        speech_output = "I'm not sure which movie you specified. " \
-                        "Please try again."
+        speech_output = "I'm not sure which movie you specified. Please try again."
         reprompt_text = ""
 
     should_end_session = True
@@ -96,7 +94,6 @@ def dank_test_two(intent, session):
 # --------------- Events ------------------
 
 def on_session_started(session_started_request, session):
-
     print("on_session_started requestId=" + session_started_request['requestId']
           + ", sessionId=" + session['sessionId'])
 
@@ -109,7 +106,6 @@ def on_launch(launch_request, session):
 
 
 def on_intent(intent_request, session):
-
     print("on_intent requestId=" + intent_request['requestId'] +
           ", sessionId=" + session['sessionId'])
 
@@ -118,7 +114,7 @@ def on_intent(intent_request, session):
 
     # Dispatch to your skill's intent handlers
     if intent_name == "MovieRatings":
-        return dank_test_two(intent, session)
+        return movie_ratings(intent, session)
     else:
         raise ValueError("Invalid intent")
 
