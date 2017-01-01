@@ -75,10 +75,11 @@ def dank_test_two(intent, session):
         response = urllib.urlopen(url)
         data = json.loads(response.read())
         imdb_rating = data["imdbRating"]
+        title = data["Title"]
 
         speech_output = "The IMDb rating for " + \
-                        movie + \
-                        " is " + \
+                        title + \
+                        ", is " + \
                         imdb_rating + \
                         " out of 10."
         reprompt_text = ""
